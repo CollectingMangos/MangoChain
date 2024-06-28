@@ -112,11 +112,46 @@ blockchain = blockChain()
 
 @app.route('/mineBlock', methods=['GET'])
 def mineBlock():
-    return "Let's mine a new Block"
+    #We run the proof of work algorithm to get the next proof
+    lastBlock = blockchain.lastBlock
+    lastProof = lastBlock['proof']
+    proof = blockchain.proofOfWork(lastProof)
+    
+    #We must receive a reward (aka a coin) for finding the proof
+    #The sender is "0" to signify that this node has mined a new coin
+    blockchain.newTransaction(
+        sender="0",
+        recipient=nodeIdentifier,
+        amount=1,
+    )
+    
+    #Forge the new Block by adding it to the chain
+    previousHash = blockchain.hash(lastBlock)
+    block = blockchain.newBlock(proof, previousHash)
+    
+    response = {
+        'message': "New MangoBlock Forged",
+        'index': block['index'],
+        'transaction': block['transactions'],
+        'proof': block['proof'],
+        'previousHash': block['previousHash'],
+    }
+    return jsonify(response), 200
 
 @app.route('/addNewTransaction', methods=['POST'])
 def addNewTransaction():
-    return "Let's add a new transaction"
+    values = request.get_json()
+    
+    #Check that the required fields are in the POST'ed data
+    required = ['sender','recipient','amount']
+    if not all(k in values for k in required):
+        return 'Missing required values', 400
+    
+    #Create a new Transcation
+    index = blockchain.newTransaction(values['sender'], values['recipients'], values['amount'])
+    
+    response = {'message': f'Transction will be added to the Block {index}'}
+    return jsonify(response), 201
 
 @app.route('/returnChain', methods=['GET'])
 def returnChain():
