@@ -1,5 +1,6 @@
 import hashlib
 import json
+from textwrap import dedent
 from time import time
 from urllib.parse import urlparse
 from uuid import uuid4
@@ -72,4 +73,58 @@ class blockChain(object):
         # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
+
+    def proofOfWork(self, lastProof):
+        """
+        Simple proof of work alogirthm:
+        1. Find a number p' such that hash(pp') contains leading 4 zeros, where p is the previous p'
+        2. p is the previous proof, and p' is the new proof
+        :param lastProof: <int>
+        :return: <int>
+        """
+        
+        proof = 0
+        while self.validProof(lastProof, proof) is False:
+            proof += 1
+        return proof
     
+    @staticmethod
+    def validProof(lastProof, proof):
+        """
+        Validates the Proof: Does hash(lastProof, proof) contain 4 leading zeroes?
+        :param lastProof: <int> Previous Proof
+        :param proof: <int> Current Proof
+        :return: <bool> True if correct, False if not.
+        """
+
+        guess = f'{lastProof}{proof}'.encode()
+        guessHash = hashlib.sha256(guess).hexdigest()
+        return guessHash[:4] == "0000"
+    
+#Instantiate the Node
+app = Flask(__name__)
+
+#Generate a globally unique address for this node
+nodeIdentifier = str(uuid4()).replace('-','')
+
+#Instantiate the Blockchain
+blockchain = blockChain()
+
+@app.route('/mineBlock', methods=['GET'])
+def mineBlock():
+    return "Let's mine a new Block"
+
+@app.route('/addNewTransaction', methods=['POST'])
+def addNewTransaction():
+    return "Let's add a new transaction"
+
+@app.route('/returnChain', methods=['GET'])
+def returnChain():
+    response = {
+        'chain': blockchain.chain,
+        'length': len(blockchain.chain),
+    }
+    return jsonify(response), 200
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
