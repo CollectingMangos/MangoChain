@@ -8,22 +8,17 @@ from uuid import uuid4
 import requests
 from flask import Flask, jsonify, request
 
-
 class Blockchain(object):
     def __init__(self):
         self.current_transactions = []
         self.chain  = []
         self.nodes = set()
     
-        #Creating the Genesis Block which is the first Block and has no predecessors
+        #Creating the Genesis MangBlock which is the first Block and has no predecessors
         self.new_block(previous_hash=1, proof=100)
     
     def register_node(self, address):
-        """
-        Add a new node to the list of nodes
-
-        :param address: Address of node. Eg. 'http://192.168.0.5:5000'
-        """
+        #Add a new node to the list of nodes
 
         parsed_url = urlparse(address)
         if parsed_url.netloc:
@@ -35,12 +30,8 @@ class Blockchain(object):
             raise ValueError('Invalid URL')
         
     def valid_chain(self, chain):
-        """
-        Determine if a given blockchain is valid
-        :param chain: <str> A blockchain
-        :return: <bool> True if valid, False if not
-        """
-        
+        #Determine if a given blockchain is valid
+                
         last_block = chain[0]
         current_index = 1
         
@@ -49,7 +40,7 @@ class Blockchain(object):
             print(f'{last_block}')
             print(f'{block}')
             print("\n-----------\n")
-            #Checking the has of the block is correct
+            #Checking if the hash of the block is correct
             if block['previous_hash'] != self.hash(last_block):
                 return False
             
@@ -66,7 +57,6 @@ class Blockchain(object):
         """
         This is our Consensus Algorithm, it resolves conflicts
         by replacing our chain with the longest one in the network.
-        :return: <bool> True if our chain was replaced, False if not
         """
         
         neighbours = self.nodes
@@ -94,14 +84,10 @@ class Blockchain(object):
             return True
         return False
     
-    #Creating a new block and adding it to the chain    
+    #Creating a new Mangblock and adding it to the chain    
     def new_block(self, proof, previous_hash=None):
-        """
-        Create a new Block in the Blockchain
-        :param proof: <int> The proof given by the Proof of Work Algorithm
-        :param previous_hash: (Optional) <str> The hash of the previous Block
-        :return: <dict> New Block
-        """
+        #Create a new MangBlock in the Blockchain
+        
         block = {
             'index': len(self.chain) +1,
             'timestamp':time(),
@@ -132,21 +118,16 @@ class Blockchain(object):
         })
         return self.last_block['index'] + 1
      
-    #Returns the last Block in the chain
+    #Returns the last MangBlock in the chain
     @property
     def last_block(self):
         return self.chain[-1] 
         
-    #Hashing of a Block
+    #Hashing of a MangBlock, it creates a SHA-256 hash of a Block
     @staticmethod
     def hash(block):
-        """
-        Creates a SHA-256 hash of a Block
-        :param block: <dict> Block
-        :return: <str>
-        """
-    
-        # We must make sure that the Dictionary is Ordered, or we'll have inconsistent hashes
+        
+        # We must make sure that the Dictionary is ordered, or we'll have inconsistent hashes
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
 
@@ -155,8 +136,6 @@ class Blockchain(object):
         Simple proof of work algorithm:
         1. Find a number p' such that hash(pp') contains leading 4 zeros, where p is the previous p'
         2. p is the previous proof, and p' is the new proof
-        :param last_proof: <int>
-        :return: <int>
         """
         
         proof = 0
@@ -166,12 +145,7 @@ class Blockchain(object):
     
     @staticmethod
     def valid_proof(last_proof, proof):
-        """
-        Validates the Proof: Does hash(last_proof, proof) contain 4 leading zeroes?
-        :param last_proof: <int> Previous Proof
-        :param proof: <int> Current Proof
-        :return: <bool> True if correct, False if not.
-        """
+        #Validates the Proof: Does hash(last_proof, proof) contain 4 leading zeroes?
 
         guess = f'{last_proof}{proof}'.encode()
         guess_hash = hashlib.sha256(guess).hexdigest()
@@ -183,5 +157,5 @@ app = Flask(__name__)
 #Generate a globally unique address for this node
 node_identifier = str(uuid4()).replace('-','')
 
-#Instantiate the Blockchain
+#Instantiate the Mango Blockchain!
 blockchain = Blockchain()

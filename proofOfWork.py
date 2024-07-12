@@ -10,5 +10,4 @@ while True:
     y += 1
 
 print(f'The solution is y = {y}')
-
 #Answer should be 21
